@@ -1,6 +1,6 @@
 {
   "name": "reasoning-bundle",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "In-house structured-reasoning discipline for Claude Code — staged decomposition, adversarial self-attack, weighted adjudication, multi-perspective analysis, and calibration tracking (opt-in) — as a portable bundle. The equal-or-better, zero-data-egress answer to external MCP 'reasoning tool' services: the reasoning stays in your model, nothing is sent to a third party.",
   "author": {
     "name": "jtims"
