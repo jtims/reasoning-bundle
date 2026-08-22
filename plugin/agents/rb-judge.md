@@ -3,6 +3,7 @@ name: rb-judge
 description: 'reasoning-bundle graph-of-thought judge: adversarially attack, score, and merge candidate approaches using the devils-advocate, decision-matrix, and logic-check disciplines. Bundled tier agent spawned by the graph-of-thought workflow; not auto-triggered.'
 tools: Read, Glob, Grep, WebFetch, WebSearch, Write
 model: opus
+effort: xhigh
 ---
 
 # rb-judge - reasoning-bundle tier judge

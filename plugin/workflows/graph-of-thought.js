@@ -38,9 +38,9 @@ const ROUNDS = Math.min(Math.max(parseInt(A.rounds || 1, 10) || 1, 1), 2)
 const AUDIT_MODEL = A.audit_model || 'fable'
 const AUDIT_EFFORT = A.audit_effort || 'xhigh'
 const T = {
-  worker:  { model: 'sonnet',    effort: 'high',       agentType: 'rb-worker'  },
-  judge:   { model: 'opus',      effort: 'xhigh',      agentType: 'rb-judge'   },
-  auditor: { model: AUDIT_MODEL, effort: AUDIT_EFFORT, agentType: 'rb-auditor' },
+  worker:  { model: 'sonnet',    effort: 'high',       agentType: 'reasoning-bundle:rb-worker'  },
+  judge:   { model: 'opus',      effort: 'xhigh',      agentType: 'reasoning-bundle:rb-judge'   },
+  auditor: { model: AUDIT_MODEL, effort: AUDIT_EFFORT, agentType: 'reasoning-bundle:rb-auditor' },
 }
 const AUDIT_RESERVE_TOKENS = 250000
 const hasBudget = (typeof budget !== 'undefined') && budget && budget.total
@@ -80,7 +80,7 @@ const pinFailures = pinSpecs.map((p, i) => {
 }).filter(f => !f.ok)
 if (pinFailures.length) {
   log('PREFLIGHT FAILED - aborting before spend: ' + JSON.stringify(pinFailures))
-  return { status: 'ABORTED_PREFLIGHT', failures: pinFailures, note: 'A tier did not route to its pinned alias or agentType. This plugin bundles the rb-worker/rb-judge/rb-auditor agentTypes in agents/; if a tier fails, check the plugin installed cleanly and that the model alias is permitted for your account. Fix and re-run - never fan onto an unverified tier.' }
+  return { status: 'ABORTED_PREFLIGHT', failures: pinFailures, note: 'A tier did not route to its pinned alias or agentType. This plugin bundles the rb-worker/rb-judge/rb-auditor agentTypes in agents/ (registered namespace-qualified as reasoning-bundle:<name>); if a tier fails, check the plugin installed cleanly and that the model alias is permitted for your account. Fix and re-run - never fan onto an unverified tier.' }
 }
 log('Preflight OK: worker/judge/auditor agentTypes routed (audit tier = ' + AUDIT_MODEL + '/' + AUDIT_EFFORT + ').')
 
@@ -98,7 +98,7 @@ async function divergeAngles(seed, round) {
       'GRAPH-OF-THOUGHT branch "' + a.key + '"' + (a.hint ? ' - ' + a.hint : '') + '.\n\nProblem: ' + A.problem +
       '\n\nProduce ONE distinct, self-contained approach to this problem from this angle. Reason under the staged-reasoning discipline (define the problem and its acceptance test, decompose by verifiability, then sketch the approach) - load the staged-reasoning skill if it is available. Deliberately DIVERGE from the obvious/default approach.\n\n' +
       'Write your full approach as markdown to ' + OUT + '/branches/branch_' + a.key + '_r' + round + '_' + SLUG + '.md (create parent dirs; write nowhere else), opening with a one-line title and the angle. Then return: thesis (one sentence), sketch (the approach), key_assumptions (what must hold for it to work), and file_path.',
-      { label: 'diverge:' + a.key, phase: 'Diverge', schema: BRANCH_SCHEMA, agentType: 'rb-worker', model: T.worker.model, effort: T.worker.effort }
+      { label: 'diverge:' + a.key, phase: 'Diverge', schema: BRANCH_SCHEMA, agentType: 'reasoning-bundle:rb-worker', model: T.worker.model, effort: T.worker.effort }
     ))))
     .filter(Boolean)
 }
@@ -106,7 +106,7 @@ async function attackBranches(brs) {
   return (await parallel(brs.map(b => () =>
     agent(
       'Apply the devils-advocate discipline to this approach - a premortem plus an attack on its WEAKEST assumption (load the devils-advocate skill if available). Identify the single strongest objection and decide whether the approach SURVIVES it.\n\nApproach [' + b.angle + ']: ' + b.thesis + '\nSketch: ' + b.sketch + '\nAssumptions: ' + (b.key_assumptions || []).join('; '),
-      { label: 'attack:' + b.angle, phase: 'Score', schema: ATTACK_SCHEMA, agentType: 'rb-judge', model: T.judge.model, effort: T.judge.effort }
+      { label: 'attack:' + b.angle, phase: 'Score', schema: ATTACK_SCHEMA, agentType: 'reasoning-bundle:rb-judge', model: T.judge.model, effort: T.judge.effort }
     ).then(at => (at ? { branch: b, attack: at } : null))))).filter(Boolean)
 }
 
@@ -145,7 +145,7 @@ for (let round = 1; round <= ROUNDS; round++) {
     'Problem: ' + A.problem + (A.criteria ? '\nCaller-supplied criteria: ' + JSON.stringify(A.criteria) : '') + (A.weights ? '\nCaller-supplied weights: ' + JSON.stringify(A.weights) : '') +
     '\n\nCANDIDATES:\n' + JSON.stringify(scoreInput, null, 1) +
     '\n\nReturn: criteria, weights, the full ranking, winner, runners_up (angles, best first), sensitivity_note, adequate (is the winner good enough to build on, or is another diverge round warranted?), and refine_hint (if not adequate, the new angle worth exploring).',
-    { label: 'score:r' + round, phase: 'Score', schema: SCORE_SCHEMA, agentType: 'rb-judge', model: T.judge.model, effort: T.judge.effort }
+    { label: 'score:r' + round, phase: 'Score', schema: SCORE_SCHEMA, agentType: 'reasoning-bundle:rb-judge', model: T.judge.model, effort: T.judge.effort }
   )
   if (!score) return { status: 'ABORTED_SCORE', error: 'Scorer failed', branches: branches.length }
   log('Round ' + round + ': ' + branches.length + ' branches scored; winner=' + score.winner + '; adequate=' + score.adequate)
@@ -163,7 +163,7 @@ const merge = await agent(
   '\nRunners-up: ' + (runnersUp.length ? runnersUp.map(r => r.branch.angle + ' (' + r.branch.file_path + ')').join(', ') : 'none') +
   '\nScoring rationale: ' + JSON.stringify(score.ranked) +
   '\n\nWrite the deliverable to ' + OUT + '/GraphOfThought_' + SLUG + '.md - open with standard frontmatter (title, project: "' + SLUG + '", type: graph-of-thought, version: v1.0, date: <today>, run_id: n/a, status: merged), then answer-first (the recommended approach in the first paragraph), a section naming which grafted ideas came from which branch, a logic-check section (premises -> inference -> validity/soundness), and open_questions. Return merged_path, exec_summary, grafted_from, open_questions.',
-  { label: 'merge', phase: 'Merge', schema: MERGE_SCHEMA, agentType: 'rb-judge', model: T.judge.model, effort: T.judge.effort }
+  { label: 'merge', phase: 'Merge', schema: MERGE_SCHEMA, agentType: 'reasoning-bundle:rb-judge', model: T.judge.model, effort: T.judge.effort }
 )
 if (!merge) return { status: 'ABORTED_MERGE', error: 'Merge failed', winner: score.winner, branches: branches.length }
 
@@ -174,7 +174,7 @@ if (!merge) return { status: 'ABORTED_MERGE', error: 'Merge failed', winner: sco
 phase('Audit')
 const auditPrompt = (round) =>
   'FINAL AUDIT (round ' + round + '). Read ONLY the merged deliverable at ' + merge.merged_path + '. Run the full five-question audit protocol from your role definition and the mimic scan. Verify it opens with the standard frontmatter. CONTRACT check against the original problem: ' + A.problem + '. Return SHIP, FIX (itemized minimal fixes), or REJECT (name the failed premise).'
-let audit = await agent(auditPrompt(1), { label: 'audit:r1', phase: 'Audit', schema: AUDIT_SCHEMA, agentType: 'rb-auditor', model: T.auditor.model, effort: T.auditor.effort })
+let audit = await agent(auditPrompt(1), { label: 'audit:r1', phase: 'Audit', schema: AUDIT_SCHEMA, agentType: 'reasoning-bundle:rb-auditor', model: T.auditor.model, effort: T.auditor.effort })
 let repairApplied = false
 if (audit && audit.verdict === 'FIX') {
   const fixList = (audit.required_fixes && audit.required_fixes.length) ? audit.required_fixes
@@ -185,10 +185,10 @@ if (audit && audit.verdict === 'FIX') {
     log('Audit FIX - one repair round on the judge tier (two-attempt cap): ' + fixList.join(' | '))
     const repair = await agent(
       'REPAIR the deliverable at ' + merge.merged_path + ' by applying EXACTLY these audit fixes (add a top changelog line "v1.1 - post-audit repairs"; change nothing else):\n- ' + fixList.join('\n- ') + '\nReturn {merged_path, exec_summary, grafted_from, open_questions} with the same path.',
-      { label: 'repair', phase: 'Audit', schema: MERGE_SCHEMA, agentType: 'rb-judge', model: T.judge.model, effort: T.judge.effort }
+      { label: 'repair', phase: 'Audit', schema: MERGE_SCHEMA, agentType: 'reasoning-bundle:rb-judge', model: T.judge.model, effort: T.judge.effort }
     )
     repairApplied = !!repair
-    if (repair) audit = await agent(auditPrompt(2), { label: 'audit:r2', phase: 'Audit', schema: AUDIT_SCHEMA, agentType: 'rb-auditor', model: T.auditor.model, effort: T.auditor.effort })
+    if (repair) audit = await agent(auditPrompt(2), { label: 'audit:r2', phase: 'Audit', schema: AUDIT_SCHEMA, agentType: 'reasoning-bundle:rb-auditor', model: T.auditor.model, effort: T.auditor.effort })
   }
 }
 

@@ -3,6 +3,7 @@ name: rb-auditor
 description: 'reasoning-bundle graph-of-thought auditor: run the final five-question audit over the merged deliverable, read-only, returning SHIP, FIX, or REJECT. Bundled tier agent spawned by the graph-of-thought workflow; not auto-triggered.'
 tools: Read, Glob, Grep
 model: opus
+effort: xhigh
 ---
 
 # rb-auditor - reasoning-bundle tier auditor

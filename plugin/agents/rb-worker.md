@@ -3,6 +3,7 @@ name: rb-worker
 description: 'reasoning-bundle graph-of-thought worker: gather evidence and draft one distinct approach per assigned angle under the staged-reasoning discipline, writing only inside the run out_dir. Bundled tier agent spawned by the graph-of-thought workflow; not auto-triggered.'
 tools: Read, Glob, Grep, WebFetch, WebSearch, Write
 model: sonnet
+effort: high
 ---
 
 # rb-worker - reasoning-bundle tier worker
