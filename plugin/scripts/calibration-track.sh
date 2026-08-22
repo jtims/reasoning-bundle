@@ -35,7 +35,7 @@ if [ "$TOTAL" -lt "$LAST" ]; then printf '%s\n' "$TOTAL" > "$RB_DIR/last-index" 
 TS=$(date -u +%Y-%m-%dT%H:%M:%S 2>/dev/null); [ -n "$TS" ] || TS="unknown"
 
 # Count labels ONLY in the assistant text blocks added since the last boundary.
-REC=$(jq -s -r --arg ts "$TS" --argjson last "$LAST" '
+REC=$(jq -s -c --arg ts "$TS" --argjson last "$LAST" '
   def labels: ["VERIFIED","REPORTED","INFERRED","ASSUMED","UNKNOWN"];
   [ .[] | select(.isSidechain != true) | select(.type=="assistant")
         | .message.content[]? | select(.type=="text") | .text ] as $all
