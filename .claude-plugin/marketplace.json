@@ -1,0 +1,13 @@
+{
+  "name": "reasoning-bundle",
+  "owner": {
+    "name": "jtims"
+  },
+  "plugins": [
+    {
+      "name": "reasoning-bundle",
+      "source": "./plugin",
+      "description": "Structured-reasoning toolkit: graph-of-thought workflow with bundled rb-worker/rb-judge/rb-auditor roster, 7 reasoning skills, calibration capture+reconcile loop, convergence guard."
+    }
+  ]
+}
