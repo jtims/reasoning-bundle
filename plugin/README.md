@@ -9,9 +9,9 @@ primitives — and stronger, adversarially-verified versions of them — running
 capabilities those products gesture at but our own stack was missing: **loop detection** and
 **calibration tracking**.
 
-**Status: v0.2.0 — feature-complete.** Skills auto-load on their triggers; both hooks are opt-in and
-inert until enabled; the graph-of-thought tournament runs as a workflow (requires the companion
-`agent-swarm` plugin).
+**Status: v0.2.1, feature-complete and standalone.** Skills auto-load on their triggers; both hooks
+are opt-in and inert until enabled; the graph-of-thought tournament runs as a workflow with this
+plugin's own bundled roster.
 
 ## What it installs
 
