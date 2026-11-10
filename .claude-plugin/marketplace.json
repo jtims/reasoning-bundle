@@ -1,5 +1,6 @@
 {
   "name": "reasoning-bundle",
+  "description": "A single-plugin marketplace for the Reasoning Bundle, a structured-reasoning toolkit for Claude Code.",
   "owner": {
     "name": "jtims"
   },

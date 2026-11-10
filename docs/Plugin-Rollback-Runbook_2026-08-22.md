@@ -20,6 +20,8 @@ The one-sentence version of the risk: **do not run `claude plugin marketplace re
 
 ## Live-system calibration (re-derived this session, independent path)
 
+This table records one session on 2026-08-22 on the author's machine: the local paths, worktree name, process id and commit shas below belong to that session (the shas predate the public history rewrite), so read them as worked evidence for the procedure, not as values to reproduce.
+
 | Claim | Label | Instrument |
 |---|---|---|
 | Directory-source marketplace records `installLocation` = the source repo itself (`~/Projects/reasoning-bundle`), not a cache clone | VERIFIED | Read `~/.claude/plugins/known_marketplaces.json` lines 18-25; contrast with the two github-source entries whose `installLocation` is under `plugins/marketplaces/` |
